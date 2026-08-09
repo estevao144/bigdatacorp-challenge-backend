@@ -1,0 +1,20 @@
+{
+  "name": "bigdatacorp-challenge-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/estevao144/bigdatacorp-challenge-backend#readme",
+  "bugs": {
+    "url": "https://github.com/estevao144/bigdatacorp-challenge-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/estevao144/bigdatacorp-challenge-backend.git"
+  },
+  "license": "ISC",
+  "author": "Estevão",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  }
+}
