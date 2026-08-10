@@ -13,6 +13,7 @@ function resetOutputFiles() {
 }
 
 async function main() {
+  console.time('Tempo de execução');
   const filePath = process.argv[2];
 
   validateFilePath(filePath);
@@ -32,6 +33,7 @@ async function main() {
   });
 
   console.log('Processamento finalizado.');
+  console.timeEnd('Tempo de execução');
 }
 
 main().catch((error) => {

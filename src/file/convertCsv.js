@@ -26,6 +26,8 @@ const PLAYER_HEADERS = [
   'Número da Camisa',
 ];
 
+const REGEX = /[",\n\r]/;
+
 function normalizeDate(value) {
   if (!value || typeof value !== 'string') {
     return '';
@@ -47,7 +49,7 @@ function escapeCsv(value) {
 
   const stringValue = Array.isArray(value) ? value.join('|') : String(value);
 
-  if (/[",\n\r]/.test(stringValue)) {
+  if (REGEX.test(stringValue)) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
 
@@ -62,9 +64,21 @@ function ensureCsvFile(outputPath, headers) {
   const fileExists = fs.existsSync(outputPath);
   const fileIsEmpty = fileExists ? fs.statSync(outputPath).size === 0 : true;
 
-  if (fileIsEmpty) {
-    fs.writeFileSync(outputPath, `${headers.join(',')}\n`, 'utf8');
+  if (!fileIsEmpty) {
+    return;
   }
+
+  fs.writeFileSync(outputPath, `${headers.join(',')}\n`, 'utf8');
+}
+
+function serializeCsvRow(values) {
+  const row = [];
+
+  for (const value of values) {
+    row.push(escapeCsv(value));
+  }
+
+  return row.join(',');
 }
 
 async function writeClub(jsonData) {
@@ -76,7 +90,7 @@ async function writeClub(jsonData) {
 
   ensureCsvFile(outputPath, CLUB_HEADERS);
 
-  const row = [
+  const row = serializeCsvRow([
     jsonData.club_id ?? jsonData.clubId ?? '',
     jsonData.name ?? '',
     jsonData.championship ?? '',
@@ -88,9 +102,7 @@ async function writeClub(jsonData) {
     jsonData.president ?? '',
     jsonData.nickname ?? '',
     Array.isArray(jsonData.colors) ? jsonData.colors.join('|') : '',
-  ]
-    .map(escapeCsv)
-    .join(',');
+  ]);
 
   fs.appendFileSync(outputPath, `${row}\n`, 'utf8');
 }
@@ -113,7 +125,7 @@ async function writePlayers(jsonData, clubId = '') {
       continue;
     }
 
-    const row = [
+    const row = serializeCsvRow([
       clubId || player.club_id || player.clubId || '',
       player.player_id ?? player.playerId ?? '',
       player.name ?? '',
@@ -122,9 +134,7 @@ async function writePlayers(jsonData, clubId = '') {
       normalizeDate(player.debut_date),
       player.position ?? '',
       player.shirt_number ?? '',
-    ]
-      .map(escapeCsv)
-      .join(',');
+    ]);
 
     fs.appendFileSync(outputPath, `${row}\n`, 'utf8');
   }
