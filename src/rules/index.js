@@ -1,7 +1,7 @@
-const { clubs } = require('./clubs');
-const { players } = require('./players');
+const { processClub } = require('./clubs');
+const { processPlayers } = require('./players');
 
 module.exports = {
-  clubs,
-  players,
+  processClub,
+  processPlayers,
 };

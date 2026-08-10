@@ -1,34 +1,40 @@
 const fs = require('fs');
-const readline = require('readline');
-const { clubs, players } = require('./rules');
-const { convertCsv } = require('./file/convertCsv');
+const path = require('path');
+const { readJsonl, writePlayers, writeClub } = require('./file/index');
+const { processClub, processPlayers } = require('./rules');
 const { validateFilePath } = require('./helper/validation');
 
-const filePath = process.argv[2];
+function resetOutputFiles() {
+  const outputDir = path.resolve(__dirname, '../output');
 
-validateFilePath(filePath);
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(path.join(outputDir, 'clubs.csv'), '', 'utf8');
+  fs.writeFileSync(path.join(outputDir, 'players.csv'), '', 'utf8');
+}
 
-const readInterface = readline.createInterface({
-  input: fs.createReadStream(filePath, { encoding: 'utf8' }),
-  crlfDelay: Infinity,
-});
+async function main() {
+  const filePath = process.argv[2];
 
-readInterface.on('line', (line) => {
-  if (!line.trim()) return;
+  validateFilePath(filePath);
+  resetOutputFiles();
 
-  try {
-    const item = JSON.parse(line);
-  } catch (error) {
-    console.error('Linha inválida no JSONL:', line);
-    console.error(error.message);
-  }
-});
+  await readJsonl(filePath, async (club) => {
+    const validClub = processClub(club);
 
-readInterface.on('close', () => {
-  console.log('Leitura finalizada do arquivo JSONL.');
-});
+    if (!validClub) {
+      return;
+    }
 
-readInterface.on('error', (error) => {
-  console.error('Erro ao ler o arquivo:', error.message);
+    const players = processPlayers(validClub.players);
+
+    await writeClub(validClub);
+    await writePlayers(players, validClub.club_id);
+  });
+
+  console.log('Processamento finalizado.');
+}
+
+main().catch((error) => {
+  console.error(error.message);
   process.exit(1);
 });
